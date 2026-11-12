@@ -8,5 +8,6 @@
     "OpenPLC Runtime v4": {}
   },
   "selectedPlatformOptions": {},
-  "vppPackagePinsByBoard": {}
+  "vppPackagePinsByBoard": {},
+  "persistentStorageByBoard": {}
 }
