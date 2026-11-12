@@ -118,12 +118,6 @@ docker compose logs --tail 80 openplc hmi
 
 Откройте <http://localhost:8080>. Страница должна загрузиться, но `PLC OFFLINE` до загрузки проекта с Modbus-сервером ожидаем. Это ещё не ошибка HMI.
 
-Сохраните сведения об окружении:
-
-```powershell
-docker compose images
-docker image inspect ghcr.io/autonomy-logic/openplc-runtime:v4.3.1 --format '{{json .RepoDigests}}'
-```
 ## 6. Установка OpenPLC Editor
 
 1. Запустите скачанный установщик OpenPLC Editor 4.3.2 для Windows x64 двойным щелчком. Следуйте мастеру: выбор пользователя/каталога, установка и завершение — если эти страницы предлагаются вашей сборкой.
