@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OpenPLC · Tank HMI</title>
+<style>
+:root{font:16px system-ui,sans-serif;color:#e8f1fb;background:#0c1523}*{box-sizing:border-box}main{max-width:850px;margin:36px auto;padding:20px}.header{display:flex;align-items:center;justify-content:space-between;gap:12px}h1{margin:0;font-size:1.6rem}small,.muted{color:#94a3b8}.tag{border:1px solid #526279;border-radius:18px;padding:6px 13px}.ok{color:#4ade80}.bad{color:#fb7185}.panel{display:grid;grid-template-columns:1fr 1fr;gap:28px;margin:25px 0;background:#172538;border:1px solid #34475b;border-radius:16px;padding:30px}.tank{height:290px;max-width:230px;margin:auto;position:relative;border:5px solid #7b92aa;border-top:0;border-radius:0 0 18px 18px;overflow:hidden;background:#112032}.water{position:absolute;bottom:0;left:0;right:0;height:10%;background:linear-gradient(0deg,#0369a1,#38bdf8);transition:height .4s}.number{position:absolute;inset:0;display:grid;place-items:center;font-size:2.5rem;font-weight:750;text-shadow:0 2px 5px #0b1620}.line{display:flex;justify-content:space-between;padding:17px 0;border-bottom:1px solid #34475b}.buttons{display:flex;gap:12px;flex-wrap:wrap}button{padding:13px 24px;border:0;border-radius:10px;cursor:pointer;font-weight:750;background:#34475b;color:white}button:first-child{background:#15803d}button:nth-child(2){background:#b91c1c}.hint{margin-top:20px;color:#a5b4c7;font-size:.9rem}#error{color:#fda4af;white-space:pre-wrap}@media(max-width:600px){.panel{grid-template-columns:1fr}.header{align-items:flex-start;flex-direction:column}}
+</style></head><body><main>
+<div class="header"><div><h1>Резервуар · TankControl</h1><small>OpenPLC Runtime v4 · Modbus TCP</small></div><span class="tag" id="status">CONNECTING</span></div>
+<section class="panel"><div><div class="tank"><div class="water" id="water"></div><div class="number" id="level">--%</div></div><p class="muted" style="text-align:center">Уровень жидкости</p></div><div>
+<div class="line"><span>Насос</span><b id="pump">--</b></div><div class="line"><span>Автоматический режим</span><b id="auto">--</b></div><div class="line"><span>Авария</span><b id="alarm">--</b></div><div class="line"><span>Нижний датчик (25%)</span><b id="low">--</b></div><div class="line"><span>Верхний датчик (90%)</span><b id="high">--</b></div>
+</div></section>
+<div class="buttons"><button onclick="send('start')">START</button><button onclick="send('stop')">STOP</button><button onclick="send('reset')">RESET</button></div>
+<p class="hint">Модель: бак объёмом 100 л, расход насоса и постоянного сливного отверстия зависит от уровня воды. Датчики расположены на 25% и 90%. Логику START/STOP/аварии выполняет PLC.</p><p id="error"></p>
+</main><script>
+const el=id=>document.getElementById(id);
+const flag=(id,value,active)=>{el(id).textContent=value?'ДА':'НЕТ';el(id).className=active?'ok':''};
+async function refresh(){try{const response=await fetch('/api/state');const s=await response.json();el('level').textContent=s.level.toFixed(0)+'%';el('water').style.height=s.level+'%';el('pump').textContent=s.pump?'РАБОТАЕТ':'ВЫКЛ';el('pump').className=s.pump?'ok':'';flag('auto',s.auto,s.auto);flag('alarm',s.alarm,!s.alarm);flag('low',s.low,s.low);flag('high',s.high,s.high);el('status').textContent=s.connected?'PLC ONLINE':'PLC OFFLINE';el('status').className='tag '+(s.connected?'ok':'bad');el('error').textContent=s.error||'';}catch(e){el('status').textContent='HMI ERROR';el('status').className='tag bad';el('error').textContent=String(e)}}
+async function send(cmd){try{const response=await fetch('/api/'+cmd,{method:'POST'});const result=await response.json();if(!response.ok)throw Error(result.error||'Command failed');await refresh()}catch(e){el('error').textContent=String(e)}}
+setInterval(refresh,500);refresh();
+</script></body></html>

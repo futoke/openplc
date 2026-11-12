@@ -1,0 +1,65 @@
+OpenPLC Editor 4.3.2 — исходная программа TankControl
+
+Создайте POU: Name = TankControl, Type = Program, Language = ST.
+Добавьте переменные через таблицу Variables. Class для всех — Local.
+В поле Location вводите адрес целиком, включая знак %.
+
+Name       Type   Location  Initial
+StartBtn   BOOL   %MX0.0    FALSE
+StopBtn    BOOL   %MX0.1    FALSE
+ResetBtn   BOOL   %MX0.2    FALSE
+LowLevel   BOOL   %MX0.3    FALSE
+HighLevel  BOOL   %MX0.4    FALSE
+Pump       BOOL   %QX1.0    FALSE
+Alarm      BOOL   %QX1.1    FALSE
+AutoMode   BOOL   %QX1.2    FALSE
+FillTimer  TON    (пусто)   (пусто)
+
+У TON оставьте Location и Initial пустыми: это экземпляр функционального блока.
+В Modbus TCP Server задайте Coils: QX = 16 бит, MX = 8 бит.
+Команды и датчики попадут в coils 16–20, выходы — в coils 8–10.
+Задача: Cyclic, Interval = T#20ms, Priority = 1; привяжите TankControl.
+
+В область кода копируйте только текст между маркерами ниже.
+Не копируйте маркеры, эту инструкцию, PROGRAM, VAR или END_PROGRAM:
+переменные и оболочку программы создаёт редактор.
+
+=== BEGIN BODY ===
+(* Сброс аварии *)
+IF ResetBtn THEN
+    IF NOT (HighLevel AND NOT LowLevel) THEN
+        Alarm := FALSE;
+        AutoMode := FALSE;
+    END_IF;
+END_IF;
+
+(* Запуск и остановка *)
+IF StopBtn THEN
+    AutoMode := FALSE;
+ELSIF StartBtn AND NOT Alarm THEN
+    AutoMode := TRUE;
+END_IF;
+
+(* Контроль неисправности датчиков *)
+IF HighLevel AND NOT LowLevel THEN
+    Alarm := TRUE;
+    AutoMode := FALSE;
+END_IF;
+
+(* Управление насосом с гистерезисом *)
+IF NOT AutoMode OR Alarm THEN
+    Pump := FALSE;
+ELSIF HighLevel THEN
+    Pump := FALSE;
+ELSIF NOT LowLevel THEN
+    Pump := TRUE;
+END_IF;
+
+(* Максимальное время непрерывной работы насоса *)
+FillTimer(IN := Pump, PT := T#30s);
+IF FillTimer.Q THEN
+    Alarm := TRUE;
+    AutoMode := FALSE;
+    Pump := FALSE;
+END_IF;
+=== END BODY ===

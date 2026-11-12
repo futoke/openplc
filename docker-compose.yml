@@ -1,0 +1,27 @@
+services:
+  openplc:
+    # Editor 4.3.2 is bundled with this lab; newer Runtime releases may require a newer Editor.
+    image: ghcr.io/autonomy-logic/openplc-runtime:v4.3.1
+    container_name: openplc
+    ports:
+      - "127.0.0.1:8443:8443"
+    cap_add:
+      - SYS_NICE
+      - SYS_RESOURCE
+    volumes:
+      - openplc-data:/var/run/runtime
+    restart: unless-stopped
+
+  hmi:
+    build: ./hmi
+    ports:
+      - "127.0.0.1:8080:8080"
+    environment:
+      PLC_HOST: openplc
+      PLC_PORT: "502"
+    depends_on:
+      - openplc
+    restart: unless-stopped
+
+volumes:
+  openplc-data:

@@ -1,0 +1,9 @@
+{
+  "pouOffsets": {
+    "TankControl": {
+      "kind": "PROGRAM",
+      "startLine": 1,
+      "endLine": 67
+    }
+  }
+}
