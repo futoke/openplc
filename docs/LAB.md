@@ -13,7 +13,7 @@ Windows
   OpenPLC Editor ── HTTPS, localhost:8443 ──> контейнер openplc
   Браузер ───────── HTTP, localhost:8080 ───> контейнер hmi
                                                │
-                          Modbus TCP openplc:502│
+                         Modbus TCP openplc:502│
                                                ▼
                                          контейнер openplc
 ```
